@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Bharat Footwear</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-button:hover {
+            background-color: #555;
+        }
+        .product, .order-item, .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .product img {
+            max-width: 50px;
+            margin-right: 10px;
+        }
+        .orders-section {
+            margin-bottom: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .cart-command {
+            color: green;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="main-title">NEW BHARAT FOOTWEAR</h1>
+        <h2>For user login with :</h2>
+        <h3>Email : customer@example.com <br></h3>
+        <h3>Password : customer123</h3>
+
+        <!-- Login Form -->
+        <div id="login-form" class="hidden">
+            <input type="text" id="email" class="form-input" placeholder="Email" required>
+            <input type="password" id="password" class="form-input" placeholder="Password" required>
+            <button id="login-btn" class="form-button">LOGIN</button>
+            <p>New user? <a href="#" id="signup-link">Sign Up</a></p>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="hidden">
+            <input type="text" id="new-email" class="form-input" placeholder="Email" required>
+            <input type="password" id="new-password" class="form-input" placeholder="Password" required>
+            <button id="signup-btn" class="form-button">SIGN UP</button>
+        </div>
+
+        <!-- Products -->
+        <div id="products" class="hidden">
+            <div id="product-list"></div>
+            <button id="cart-btn" class="form-button">CART</button>
+            <h2>Placed Orders</h2>
+            <div id="customer-orders"></div>
+        </div>
+
+        <!-- Cart and Order Summary -->
+        <div id="cart" class="hidden">
+            <h2>Order Summary</h2>
+            <div id="cart-items"></div>
+            <h3>Total: $<span id="total">0</span></h3>
+            <button id="checkout-btn" class="form-button">PLACE ORDER</button>
+            <div id="cart-command" class="cart-command hidden">Item added to cart!</div>
+        </div>
+
+        <!-- Place Order Form -->
+        <div id="order-form" class="hidden">
+            <input type="text" id="customer-name" class="form-input" placeholder="Name" required>
+            <input type="text" id="customer-address" class="form-input" placeholder="Address" required>
+            <input type="text" id="customer-phone" class="form-input" placeholder="Phone Number" required>
+            <button id="place-order-btn" class="form-button">PLACE ORDER</button>
+        </div>
+
+        <!-- Admin Orders -->
+        <div id="admin-orders" class="hidden">
+            <h2>Orders</h2>
+            <div class="orders-section">
+                <h3>Pending Orders</h3>
+                <div id="pending-order-list"></div>
+            </div>
+            <div class="orders-section">
+                <h3>Completed Orders</h3>
+                <div id="completed-order-list"></div>
+                <button id="clear-completed-btn" class="form-button">CLEAR COMPLETED ORDERS</button>
+            </div>
+            <div class="add-product-form">
+                <h3>Add New Product</h3>
+                <input type="text" id="new-product-name" class="form-input" placeholder="Product Name" required>
+                <input type="number" id="new-product-price" class="form-input" placeholder="Price" required>
+                <input type="text" id="new-product-image" class="form-input" placeholder="Image URL" required>
+                <button id="add-product-btn" class="form-button">ADD PRODUCT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let users = [
+            { email: 'admin@example.com', password: 'admin123', role: 'admin' },
+            { email: 'customer@example.com', password: 'customer123', role: 'customer' }
+        ];
+        let pendingOrders = JSON.parse(localStorage.getItem('pendingOrders')) || [];
+        let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+        let products = JSON.parse(localStorage.getItem('products')) || [
+            { name: 'BLUE SHOES', price: 150, image: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.ajio.com%2Fasian--textured-running-sports-shoes%2Fp%2F464108798_blue&psig=AOvVaw0IdR6N_ZVUk0cXef11GNEU&ust=1722875473354000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCLCqmrbh24cDFQAAAAAdAAAAABAE' },
+            { name: 'BROWN GIRL SLIPPER', price: 250, image: 'https://example.com/brown-girl-slipper.jpg' },
+            { name: 'GIRL SLIPPER', price: 200, image: 'https://example.com/girl-slipper.jpg' },
+            { name: 'BLUE SLIPPER', price: 100, image: 'https://example.com/blue-slipper.jpg' }
+        ];
+        let customerOrders = JSON.parse(localStorage.getItem('customerOrders')) || [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('login-form').classList.remove('hidden');
+            loadProducts();
+        });
+
+        document.getElementById('login-btn')?.addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const user = users.find(user => user.email === email && user.password === password);
+
+            if (user) {
+                alert('Login successful!');
+                if (user.role === 'admin') {
+                    document.getElementById('main-title').innerText = 'Admin Panel';
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('admin-orders').classList.remove('hidden');
+                    displayOrders();
+                } else {
+                    document.getElementById('main-title').innerText = 'New Bharat Footwear';
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('products').classList.remove('hidden');
+                    displayCustomerOrders();
+                }
+            } else {
+                alert('Invalid email or password');
+            }
+        });
+
+        document.getElementById('signup-link')?.addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        });
+
+        document.getElementById('signup-btn')?.addEventListener('click', () => {
+            const email = document.getElementById('new-email').value;
+            const password = document.getElementById('new-password').value;
+
+            users.push({ email, password, role: 'customer' });
+            alert('Signup successful! Please login.');
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+
+        document.getElementById('cart-btn')?.addEventListener('click', () => {
+            document.getElementById('products').classList.add('hidden');
+            document.getElementById('cart').classList.remove('hidden');
+        });
+
+        document.getElementById('checkout-btn')?.addEventListener('click', () => {
+            document.getElementById('cart').classList.add('hidden');
+            document.getElementById('order-form').classList.remove('hidden');
+        });
+
+        document.getElementById('place-order-btn')?.addEventListener('click', () => {
+            const name = document.getElementById('customer-name').value;
+            const address = document.getElementById('customer-address').value;
+            const phone = document.getElementById('customer-phone').value;
+
+            if (name && address && phone && cart.length > 0) {
+                const orderDate = new Date().toLocaleString();
+                pendingOrders.push({
+                    customerName: name,
+                    customerAddress: address,
+                    customerPhone: phone,
+                    orderDate,
+                    cart: [...cart]
+                });
+
+                customerOrders.push({
+                    customerName: name,
+                    customerAddress: address,
+                    customerPhone: phone,
+                    orderDate,
+                    cart: [...cart]
+                });
+
+                localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
+                localStorage.setItem('customerOrders', JSON.stringify(customerOrders));
+
+                alert('Order placed successfully!');
+                cart = [];
+                document.getElementById('total').innerText = '0';
+                document.getElementById('cart-items').innerHTML = '';
+                document.getElementById('order-form').classList.add('hidden');
+                document.getElementById('products').classList.remove('hidden');
+                displayCustomerOrders();
+            } else {
+                alert('Please fill all the details and add items to cart.');
+            }
+        });
+
+        document.getElementById('add-product-btn')?.addEventListener('click', () => {
+            const name = document.getElementById('new-product-name').value;
+            const price = document.getElementById('new-product-price').value;
+            const image = document.getElementById('new-product-image').value;
+
+            if (name && price && image) {
+                products.push({ name, price: parseFloat(price), image });
+                localStorage.setItem('products', JSON.stringify(products));
+                loadProducts();
+                alert('Product added successfully!');
+            } else {
+                alert('Please fill all the details.');
+            }
+        });
+
+        document.getElementById('clear-completed-btn')?.addEventListener('click', () => {
+            completedOrders = [];
+            localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+            displayOrders();
+            alert('All completed orders have been cleared.');
+        });
+
+        function loadProducts() {
+            const productListDiv = document.getElementById('product-list');
+            productListDiv.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('product');
+
+                productDiv.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}">
+                    <div>
+                        <h3>${product.name}</h3>
+                        <p>Price: $${product.price}</p>
+                        <button onclick="addToCart(${index})" class="form-button">Add to Cart</button>
+                    </div>
+                `;
+
+                productListDiv.appendChild(productDiv);
+            });
+        }
+
+        function addToCart(index) {
+            const product = products[index];
+            cart.push(product);
+            document.getElementById('total').innerText = cart.reduce((total, item) => total + item.price, 0);
+            updateCartItems();
+            displayCartCommand('Item added to cart!');
+        }
+
+        function updateCartItems() {
+            const cartItemsDiv = document.getElementById('cart-items');
+            cartItemsDiv.innerHTML = '';
+
+            cart.forEach((item, index) => {
+                const cartItemDiv = document.createElement('div');
+                cartItemDiv.classList.add('cart-item');
+
+                cartItemDiv.innerHTML = `
+                    <div>
+                        <img src="${item.image}" alt="${item.name}">
+                        <h4>${item.name}</h4>
+                    </div>
+                    <div>
+                        <p>Price: $${item.price}</p>
+                        <button onclick="removeFromCart(${index})" class="form-button">Remove</button>
+                    </div>
+                `;
+
+                cartItemsDiv.appendChild(cartItemDiv);
+            });
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            document.getElementById('total').innerText = cart.reduce((total, item) => total + item.price, 0);
+            updateCartItems();
+        }
+
+        function displayOrders() {
+            displayPendingOrders();
+            displayCompletedOrders();
+        }
+
+        function displayPendingOrders() {
+            const pendingOrderListDiv = document.getElementById('pending-order-list');
+            pendingOrderListDiv.innerHTML = '';
+
+            pendingOrders.forEach((order, index) => {
+                const orderDiv = document.createElement('div');
+                orderDiv.classList.add('order-item');
+
+                orderDiv.innerHTML = `
+                    <div>
+                        <h4>Order #${index + 1}</h4>
+                        <p>Name: ${order.customerName}</p>
+                        <p>Address: ${order.customerAddress}</p>
+                        <p>Phone: ${order.customerPhone}</p>
+                        <p>Order Date: ${order.orderDate}</p>
+                        <p>Items: ${order.cart.map(item => item.name).join(', ')}</p>
+                    </div>
+                    <div>
+                        <button onclick="completeOrder(${index})" class="form-button">Complete</button>
+                    </div>
+                `;
+
+                pendingOrderListDiv.appendChild(orderDiv);
+            });
+        }
+
+        function displayCompletedOrders() {
+            const completedOrderListDiv = document.getElementById('completed-order-list');
+            completedOrderListDiv.innerHTML = '';
+
+            completedOrders.forEach((order, index) => {
+                const orderDiv = document.createElement('div');
+                orderDiv.classList.add('order-item');
+
+                orderDiv.innerHTML = `
+                    <div>
+                        <h4>Order #${index + 1}</h4>
+                        <p>Name: ${order.customerName}</p>
+                        <p>Address: ${order.customerAddress}</p>
+                        <p>Phone: ${order.customerPhone}</p>
+                        <p>Order Date: ${order.orderDate}</p>
+                        <p>Items: ${order.cart.map(item => item.name).join(', ')}</p>
+                    </div>
+                `;
+
+                completedOrderListDiv.appendChild(orderDiv);
+            });
+        }
+
+        function completeOrder(index) {
+            completedOrders.push(pendingOrders[index]);
+            pendingOrders.splice(index, 1);
+
+            localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
+            localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+
+            displayOrders();
+        }
+
+        function displayCustomerOrders() {
+            const customerOrdersDiv = document.getElementById('customer-orders');
+            customerOrdersDiv.innerHTML = '';
+
+            customerOrders.forEach((order, index) => {
+                const orderDiv = document.createElement('div');
+                orderDiv.classList.add('order-item');
+
+                orderDiv.innerHTML = `
+                    <div>
+                        <h4>Order #${index + 1}</h4>
+                        <p>Name: ${order.customerName}</p>
+                        <p>Address: ${order.customerAddress}</p>
+                        <p>Phone: ${order.customerPhone}</p>
+                        <p>Order Date: ${order.orderDate}</p>
+                        <p>Items: ${order.cart.map(item => item.name).join(', ')}</p>
+                    </div>
+                `;
+
+                customerOrdersDiv.appendChild(orderDiv);
+            });
+        }
+
+        function displayCartCommand(message) {
+            const cartCommandDiv = document.getElementById('cart-command');
+            cartCommandDiv.innerText = message;
+            cartCommandDiv.classList.remove('hidden');
+
+            setTimeout(() => {
+                cartCommandDiv.classList.add('hidden');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
